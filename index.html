@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Absensi Pegawai</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div>
+            <h1>ABSENSI PEGAWAI</h1>
+            <p>Sistem Absensi Selfie & GPS</p>
+        </div>
+
+        <div class="status">
+            <span></span> Sistem Aktif
+        </div>
+    </header>
+
+
+    <main class="container">
+
+        <!-- PROFIL -->
+        <section class="card profile">
+
+            <div class="avatar">
+                👤
+            </div>
+
+            <div>
+                <h2>Nama Pegawai</h2>
+                <p>NIP: 1987654321</p>
+                <p>Bidang Kebudayaan</p>
+            </div>
+
+        </section>
+
+
+        <!-- JAM -->
+        <section class="clock-card">
+
+            <p id="tanggal">-</p>
+
+            <h2 id="jam">00:00:00</h2>
+
+            <p>Waktu Indonesia Barat (WIB)</p>
+
+        </section>
+
+
+        <!-- KAMERA -->
+        <section class="card">
+
+            <div class="section-title">
+                <h2>📸 Foto Absensi</h2>
+                <span id="cameraStatus">Belum aktif</span>
+            </div>
+
+            <div class="camera">
+
+                <video id="video" autoplay playsinline></video>
+
+                <canvas id="canvas"></canvas>
+
+                <div id="cameraPlaceholder">
+                    <div>📷</div>
+                    <p>Kamera belum diaktifkan</p>
+                </div>
+
+            </div>
+
+            <button class="btn secondary" id="startCamera">
+                📷 Aktifkan Kamera
+            </button>
+
+            <button class="btn primary" id="takePhoto">
+                🤳 Ambil Selfie
+            </button>
+
+            <div class="photo-preview">
+                <img id="photo" alt="Foto selfie">
+            </div>
+
+        </section>
+
+
+        <!-- GPS -->
+        <section class="card">
+
+            <div class="section-title">
+                <h2>📍 Lokasi GPS</h2>
+                <span id="gpsStatus">Belum dicek</span>
+            </div>
+
+            <div class="location-box">
+
+                <div class="location-icon">
+                    📍
+                </div>
+
+                <div>
+
+                    <strong id="locationText">
+                        Tekan tombol untuk mendapatkan lokasi
+                    </strong>
+
+                    <p id="coordinates">
+                        Latitude: -<br>
+                        Longitude: -
+                    </p>
+
+                </div>
+
+            </div>
+
+            <button class="btn secondary" id="getLocation">
+                📍 Ambil Lokasi Saya
+            </button>
+
+        </section>
+
+
+        <!-- ABSENSI -->
+        <section class="card">
+
+            <h2 class="attendance-title">
+                Pilih Jenis Absensi
+            </h2>
+
+            <div class="attendance-buttons">
+
+                <button
+                    class="attendance masuk"
+                    id="absenMasuk">
+
+                    <span>🟢</span>
+
+                    <div>
+                        <strong>ABSEN MASUK</strong>
+                        <small>Catat waktu masuk</small>
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="attendance pulang"
+                    id="absenPulang">
+
+                    <span>🔴</span>
+
+                    <div>
+                        <strong>ABSEN PULANG</strong>
+                        <small>Catat waktu pulang</small>
+                    </div>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- STATUS -->
+        <section id="result" class="result hidden">
+
+            <div class="result-icon">
+                ✅
+            </div>
+
+            <h2>Absensi Berhasil</h2>
+
+            <p id="resultText"></p>
+
+        </section>
+
+
+        <!-- RIWAYAT -->
+        <section class="card">
+
+            <div class="section-title">
+
+                <h2>📋 Riwayat Absensi</h2>
+
+                <button id="clearHistory">
+                    Hapus
+                </button>
+
+            </div>
+
+            <div id="history">
+
+                <div class="empty">
+                    Belum ada riwayat absensi
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            Sistem Absensi Pegawai © 2026
+        </p>
+
+    </footer>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
