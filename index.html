@@ -2,625 +2,888 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fast Scanner + Editor</title>
-    <!-- OpenCV.js untuk deteksi otomatis -->
-    <script src="https://docs.opencv.org/4.9.0/opencv.js">
-    </script>
-    <!-- jsPDF untuk export PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Pegawai</title>
+
     <style>
+        /* ========== CSS GABUNGAN ========== */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
         }
+
         body {
-            background: #0f0f1a;
-            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #f3f6f9;
+            color: #1f2937;
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, #075985, #0284c7);
+            color: white;
+            padding: 22px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 16px;
         }
-        .app-container {
-            max-width: 520px;
-            width: 100%;
-            background: #1a1a2e;
-            border-radius: 32px;
-            padding: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            border: 1px solid #2a2a44;
+
+        .topbar h1 {
+            font-size: 20px;
         }
-        h1 {
-            text-align: center;
-            color: #fff;
-            font-weight: 600;
-            font-size: 24px;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
+
+        .topbar p {
+            margin-top: 5px;
+            opacity: .8;
         }
-        h1 span {
-            color: #6c63ff;
-        }
-        .status-text {
-            text-align: center;
-            color: #aaa;
+
+        .status {
+            background: rgba(255,255,255,.15);
+            padding: 9px 14px;
+            border-radius: 30px;
             font-size: 13px;
-            margin-bottom: 18px;
-            min-height: 20px;
         }
-        .viewer-box {
-            position: relative;
-            background: #111;
-            border-radius: 20px;
-            overflow: hidden;
-            aspect-ratio: 4 / 3;
+
+        .status span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .container {
+            width: min(700px, 94%);
+            margin: 25px auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,.06);
+        }
+
+        .profile {
             display: flex;
             align-items: center;
-            justify-content: center;
-            border: 2px solid #333;
-            touch-action: none;
+            gap: 15px;
         }
-        #video {
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #e0f2fe;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+        }
+
+        .profile h2 {
+            font-size: 18px;
+        }
+
+        .profile p {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+
+        .clock-card {
+            background: linear-gradient(135deg, #0f172a, #334155);
+            color: white;
+            border-radius: 18px;
+            text-align: center;
+            padding: 25px;
+            margin-bottom: 18px;
+        }
+
+        .clock-card h2 {
+            font-size: 42px;
+            margin: 8px 0;
+            letter-spacing: 2px;
+        }
+
+        .clock-card p {
+            opacity: .75;
+            font-size: 13px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .section-title h2 {
+            font-size: 18px;
+        }
+
+        .section-title span {
+            font-size: 12px;
+            background: #f1f5f9;
+            padding: 6px 10px;
+            border-radius: 20px;
+        }
+
+        .camera {
+            width: 100%;
+            height: 360px;
+            background: #111827;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
         }
-        #editorCanvas {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+
+        canvas {
             display: none;
-            background: #111;
         }
-        .crop-overlay {
+
+        #cameraPlaceholder {
             position: absolute;
-            top: 0;
-            left: 0;
+            inset: 0;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #cameraPlaceholder div {
+            font-size: 50px;
+        }
+
+        #cameraPlaceholder p {
+            margin-top: 10px;
+            opacity: .7;
+        }
+
+        .photo-preview {
+            margin-top: 15px;
+        }
+
+        .photo-preview img {
             width: 100%;
-            height: 100%;
-            pointer-events: none;
+            border-radius: 15px;
+            display: none;
         }
-        .crop-box {
-            position: absolute;
-            border: 2px solid #6c63ff;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-            pointer-events: none;
-        }
-        .crop-handle {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: #6c63ff;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            pointer-events: auto;
-            cursor: grab;
-            z-index: 10;
-            transform: translate(-50%, -50%);
-        }
-        .crop-handle:active {
-            cursor: grabbing;
-        }
-        .action-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-top: 16px;
-        }
+
         .btn {
-            padding: 10px 0;
+            width: 100%;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .primary {
+            background: #0284c7;
+            color: white;
+        }
+
+        .secondary {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .location-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 14px;
+            margin-bottom: 10px;
+        }
+
+        .location-icon {
+            width: 45px;
+            height: 45px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+        }
+
+        #coordinates {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .attendance-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .attendance-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .attendance {
             border: none;
             border-radius: 14px;
-            font-weight: 600;
-            font-size: 12px;
-            background: #2a2a44;
-            color: #ccc;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            padding: 17px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 2px;
-            border: 1px solid transparent;
+            gap: 12px;
+            text-align: left;
+            cursor: pointer;
         }
-        .btn:active {
-            transform: scale(0.94);
+
+        .attendance span {
+            font-size: 24px;
         }
-        .btn-primary {
-            background: #6c63ff;
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+
+        .attendance strong {
+            display: block;
         }
-        .btn-success {
-            background: #2e7d32;
-            color: #fff;
+
+        .attendance small {
+            display: block;
+            margin-top: 4px;
+            color: #64748b;
         }
-        .btn-warning {
-            background: #b76e1e;
-            color: #fff;
+
+        .masuk {
+            background: #dcfce7;
         }
-        .btn-danger {
-            background: #b71c1c;
-            color: #fff;
+
+        .pulang {
+            background: #fee2e2;
         }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #444;
+
+        .result {
+            background: #dcfce7;
+            padding: 25px;
+            text-align: center;
+            border-radius: 18px;
+            margin-bottom: 18px;
         }
-        .btn-icon {
-            font-size: 18px;
-            line-height: 1;
+
+        .result-icon {
+            font-size: 40px;
         }
-        .btn-label {
-            font-size: 9px;
-            opacity: 0.9;
+
+        .result h2 {
+            margin: 10px 0;
+            color: #166534;
         }
-        #fileInput {
+
+        .hidden {
             display: none;
         }
-        .loader {
-            display: none;
+
+        #clearHistory {
+            border: none;
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
         }
-        @media (max-width: 480px) {
-            .app-container {
-                padding: 12px;
-                border-radius: 24px;
+
+        .history-item {
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item strong {
+            display: block;
+        }
+
+        .history-item small {
+            color: #64748b;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8;
+        }
+
+        footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+            padding: 20px;
+        }
+
+        @media (max-width: 500px) {
+            .topbar {
+                display: block;
             }
-            .action-grid {
-                gap: 4px;
+
+            .status {
+                display: inline-block;
+                margin-top: 12px;
             }
-            .btn {
-                font-size: 10px;
-                padding: 8px 0;
-                border-radius: 10px;
+
+            .clock-card h2 {
+                font-size: 34px;
             }
-            .btn-icon {
-                font-size: 16px;
+
+            .camera {
+                height: 330px;
             }
-            .crop-handle {
-                width: 16px;
-                height: 16px;
+
+            .attendance-buttons {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
 
-    <div class="app-container">
-        <h1>📄 <span>Fast</span> Scanner</h1>
-        <div class="status-text" id="statusText">📷 Mengaktifkan kamera...</div>
+    <header class="topbar">
+        <div>
+            <h1>ABSENSI PEGAWAI</h1>
+            <p>Sistem Absensi Selfie & GPS</p>
+        </div>
 
-        <div class="viewer-box" id="viewerBox">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="editorCanvas"></canvas>
-            <div class="crop-overlay" id="cropOverlay" style="display:none;">
-                <div class="crop-box" id="cropBox">
-                    <div class="crop-handle" data-dir="tl" style="top:0;left:0;"></div>
-                    <div class="crop-handle" data-dir="tr" style="top:0;left:100%;"></div>
-                    <div class="crop-handle" data-dir="br" style="top:100%;left:100%;"></div>
-                    <div class="crop-handle" data-dir="bl" style="top:100%;left:0;"></div>
-                    <div class="crop-handle" data-dir="top" style="top:0;left:50%;"></div>
-                    <div class="crop-handle" data-dir="bottom" style="top:100%;left:50%;"></div>
-                    <div class="crop-handle" data-dir="left" style="top:50%;left:0;"></div>
-                    <div class="crop-handle" data-dir="right" style="top:50%;left:100%;"></div>
+        <div class="status">
+            <span></span> Sistem Aktif
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- PROFIL -->
+        <section class="card profile">
+            <div class="avatar">👤</div>
+            <div>
+                <h2>Nama Pegawai</h2>
+                <p>NIP: 1987654321</p>
+                <p>Bidang Kebudayaan</p>
+            </div>
+        </section>
+
+        <!-- JAM -->
+        <section class="clock-card">
+            <p id="tanggal">-</p>
+            <h2 id="jam">00:00:00</h2>
+            <p>Waktu Indonesia Barat (WIB)</p>
+        </section>
+
+        <!-- KAMERA -->
+        <section class="card">
+            <div class="section-title">
+                <h2>📸 Foto Absensi</h2>
+                <span id="cameraStatus">Belum aktif</span>
+            </div>
+
+            <div class="camera">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
+                <div id="cameraPlaceholder">
+                    <div>📷</div>
+                    <p>Kamera belum diaktifkan</p>
                 </div>
             </div>
-        </div>
 
-        <div class="action-grid">
-            <button class="btn btn-primary" id="btnCapture"><span class="btn-icon">📸</span><span class="btn-label">Ambil</span></button>
-            <button class="btn btn-warning" id="btnUpload"><span class="btn-icon">🖼️</span><span class="btn-label">Upload</span></button>
-            <button class="btn btn-success" id="btnCrop"><span class="btn-icon">✂️</span><span class="btn-label">Terapkan</span></button>
-            <button class="btn btn-success" id="btnPDF"><span class="btn-icon">📑</span><span class="btn-label">PDF</span></button>
-            <button class="btn btn-outline" id="btnJPG"><span class="btn-icon">🖼️</span><span class="btn-label">JPG</span></button>
-        </div>
-        <input type="file" id="fileInput" accept="image/*">
-    </div>
+            <button class="btn secondary" id="startCamera">
+                📷 Aktifkan Kamera
+            </button>
+            <button class="btn primary" id="takePhoto">
+                🤳 Ambil Selfie
+            </button>
+
+            <div class="photo-preview">
+                <img id="photo" alt="Foto selfie">
+            </div>
+        </section>
+
+        <!-- GPS -->
+        <section class="card">
+            <div class="section-title">
+                <h2>📍 Lokasi GPS</h2>
+                <span id="gpsStatus">Belum dicek</span>
+            </div>
+
+            <div class="location-box">
+                <div class="location-icon">📍</div>
+                <div>
+                    <strong id="locationText">
+                        Tekan tombol untuk mendapatkan lokasi
+                    </strong>
+                    <p id="coordinates">
+                        Latitude: -<br>
+                        Longitude: -
+                    </p>
+                </div>
+            </div>
+
+            <button class="btn secondary" id="getLocation">
+                📍 Ambil Lokasi Saya
+            </button>
+        </section>
+
+        <!-- ABSENSI -->
+        <section class="card">
+            <h2 class="attendance-title">Pilih Jenis Absensi</h2>
+            <div class="attendance-buttons">
+                <button class="attendance masuk" id="absenMasuk">
+                    <span>🟢</span>
+                    <div>
+                        <strong>ABSEN MASUK</strong>
+                        <small>Catat waktu masuk</small>
+                    </div>
+                </button>
+
+                <button class="attendance pulang" id="absenPulang">
+                    <span>🔴</span>
+                    <div>
+                        <strong>ABSEN PULANG</strong>
+                        <small>Catat waktu pulang</small>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- STATUS -->
+        <section id="result" class="result hidden">
+            <div class="result-icon">✅</div>
+            <h2>Absensi Berhasil</h2>
+            <p id="resultText"></p>
+        </section>
+
+        <!-- RIWAYAT -->
+        <section class="card">
+            <div class="section-title">
+                <h2>📋 Riwayat Absensi</h2>
+                <button id="clearHistory">Hapus</button>
+            </div>
+            <div id="history">
+                <div class="empty">Belum ada riwayat absensi</div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Sistem Absensi Pegawai © 2026</p>
+    </footer>
 
     <script>
-        // ================================================================
-        // 1. ELEMEN & VARIABEL GLOBAL
-        // ================================================================
-        const video = document.getElementById('video');
-        const editorCanvas = document.getElementById('editorCanvas');
-        const ctx = editorCanvas.getContext('2d');
-        const statusText = document.getElementById('statusText');
-        const viewerBox = document.getElementById('viewerBox');
-        const cropOverlay = document.getElementById('cropOverlay');
-        const cropBox = document.getElementById('cropBox');
+        // ========== JAVASCRIPT GABUNGAN ==========
 
-        let cvReady = false;
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const photo = document.getElementById("photo");
+
+        const startCamera = document.getElementById("startCamera");
+        const takePhoto = document.getElementById("takePhoto");
+
+        const cameraPlaceholder =
+            document.getElementById("cameraPlaceholder");
+
+        const cameraStatus =
+            document.getElementById("cameraStatus");
+
+        const getLocation =
+            document.getElementById("getLocation");
+
+        const gpsStatus =
+            document.getElementById("gpsStatus");
+
+        const locationText =
+            document.getElementById("locationText");
+
+        const coordinates =
+            document.getElementById("coordinates");
+
         let stream = null;
-        let originalImage = null;
-        let croppedImage = null;
-        let cropRect = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
-        let isDragging = false;
-        let activeHandle = null;
-        let startX, startY, startRect;
+        let currentPhoto = null;
+        let currentLocation = null;
 
-        // ================================================================
-        // 2. OPENCV READY
-        // ================================================================
-        function onOpenCvReady() {
-            cvReady = true;
-            statusText.innerHTML = '✅ OpenCV siap (deteksi otomatis tersedia)';
-        }
-        if (typeof cv !== 'undefined' && cv.Mat) {
-            onOpenCvReady();
-        } else {
-            window.onOpenCvReady = onOpenCvReady;
+        // ==============================
+        // JAM
+        // ==============================
+
+        function updateClock() {
+
+            const now = new Date();
+
+            const jam =
+                now.toLocaleTimeString("id-ID", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                });
+
+            const tanggal =
+                now.toLocaleDateString("id-ID", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                });
+
+            document.getElementById("jam").textContent = jam;
+
+            document.getElementById("tanggal").textContent = tanggal;
         }
 
-        // ================================================================
-        // 3. KAMERA
-        // ================================================================
-        async function startCamera() {
+        setInterval(updateClock, 1000);
+
+        updateClock();
+
+        // ==============================
+        // KAMERA
+        // ==============================
+
+        startCamera.addEventListener("click", async () => {
+
             try {
+
                 stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    video: {
+                        facingMode: "user"
+                    },
                     audio: false
                 });
+
                 video.srcObject = stream;
-                await video.play();
-                statusText.innerHTML = '📷 Kamera aktif. Arahkan ke dokumen, lalu tekan "Ambil"';
-            } catch (err) {
-                statusText.innerHTML = '⚠️ Gagal akses kamera: ' + err.message;
-                console.warn(err);
-            }
-        }
-        startCamera();
 
-        // ================================================================
-        // 4. DETEKSI OTOMATIS DENGAN OPENCV
-        // ================================================================
-        function autoDetectAndCrop(sourceCanvas) {
-            if (!cvReady) {
-                statusText.innerHTML = '⚠️ OpenCV belum siap, gunakan crop manual.';
-                return null;
-            }
-            try {
-                let src = cv.imread(sourceCanvas);
-                let gray = new cv.Mat();
-                let edges = new cv.Mat();
-                let hierarchy = new cv.Mat();
-                let contours = new cv.MatVector();
-                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-                cv.GaussianBlur(gray, gray, new cv.Size(5, 5), 0);
-                cv.Canny(gray, edges, 75, 200);
-                cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-                let maxArea = 0,
-                    maxIdx = -1;
-                for (let i = 0; i < contours.size(); i++) {
-                    let area = cv.contourArea(contours.get(i));
-                    if (area > maxArea) { maxArea = area;
-                        maxIdx = i; }
-                }
-                if (maxIdx === -1 || maxArea < 5000) {
-                    src.delete();
-                    gray.delete();
-                    edges.delete();
-                    hierarchy.delete();
-                    contours.delete();
-                    return null;
-                }
-                let contour = contours.get(maxIdx);
-                let approx = new cv.Mat();
-                cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
-                if (approx.rows() !== 4) {
-                    approx.delete();
-                    contour.delete();
-                    src.delete();
-                    gray.delete();
-                    edges.delete();
-                    hierarchy.delete();
-                    contours.delete();
-                    return null;
-                }
-                let pts = [];
-                for (let i = 0; i < 4; i++) {
-                    pts.push({ x: approx.data32S[i * 2], y: approx.data32S[i * 2 + 1] });
-                }
-                let cx = pts.reduce((s, p) => s + p.x, 0) / 4;
-                let cy = pts.reduce((s, p) => s + p.y, 0) / 4;
-                pts.sort((a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
+                cameraPlaceholder.style.display = "none";
 
-                let srcPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
-                    pts[0].x, pts[0].y, pts[1].x, pts[1].y,
-                    pts[2].x, pts[2].y, pts[3].x, pts[3].y
-                ]);
-                let w1 = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-                let w2 = Math.hypot(pts[2].x - pts[3].x, pts[2].y - pts[3].y);
-                let h1 = Math.hypot(pts[0].x - pts[3].x, pts[0].y - pts[3].y);
-                let h2 = Math.hypot(pts[1].x - pts[2].x, pts[1].y - pts[2].y);
-                let maxW = Math.max(w1, w2, 200);
-                let maxH = Math.max(h1, h2, 200);
-                let dstPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
-                    0, 0, maxW, 0, maxW, maxH, 0, maxH
-                ]);
-                let M = cv.getPerspectiveTransform(srcPoints, dstPoints);
-                let warped = new cv.Mat();
-                cv.warpPerspective(src, warped, M, new cv.Size(maxW, maxH));
+                cameraStatus.textContent = "Kamera aktif";
 
-                let tempCanvas = document.createElement('canvas');
-                tempCanvas.width = maxW;
-                tempCanvas.height = maxH;
-                cv.imshow(tempCanvas, warped);
+            } catch (error) {
 
-                src.delete();
-                gray.delete();
-                edges.delete();
-                hierarchy.delete();
-                contours.delete();
-                contour.delete();
-                approx.delete();
-                srcPoints.delete();
-                dstPoints.delete();
-                M.delete();
-                warped.delete();
+                alert(
+                    "Kamera tidak dapat digunakan.\n\n" +
+                    "Pastikan izin kamera sudah diberikan."
+                );
 
-                return tempCanvas;
-            } catch (e) {
-                console.warn('Auto detect error:', e);
-                return null;
-            }
-        }
-
-        // ================================================================
-        // 5. TANGKAP GAMBAR
-        // ================================================================
-        function captureImage() {
-            if (!video.srcObject) {
-                alert('Kamera belum aktif.');
-                return;
-            }
-            let tempCanvas = document.createElement('canvas');
-            tempCanvas.width = video.videoWidth || 1280;
-            tempCanvas.height = video.videoHeight || 720;
-            let tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-
-            let result = autoDetectAndCrop(tempCanvas);
-            if (result) {
-                originalImage = result;
-                statusText.innerHTML = '✅ Deteksi berhasil! Silakan atur crop jika perlu.';
-            } else {
-                originalImage = tempCanvas;
-                statusText.innerHTML = '⚠️ Deteksi gagal, gunakan crop manual.';
-            }
-            showEditor(originalImage);
-        }
-
-        // ================================================================
-        // 6. TAMPILKAN EDITOR
-        // ================================================================
-        function showEditor(sourceCanvas) {
-            video.style.display = 'none';
-            editorCanvas.style.display = 'block';
-            cropOverlay.style.display = 'block';
-
-            let rect = viewerBox.getBoundingClientRect();
-            let containerW = viewerBox.clientWidth;
-            let containerH = viewerBox.clientHeight;
-            let imgW = sourceCanvas.width;
-            let imgH = sourceCanvas.height;
-            let scale = Math.min(containerW / imgW, containerH / imgH);
-            let displayW = imgW * scale;
-            let displayH = imgH * scale;
-
-            editorCanvas.width = imgW;
-            editorCanvas.height = imgH;
-            editorCanvas.style.width = displayW + 'px';
-            editorCanvas.style.height = displayH + 'px';
-            ctx.clearRect(0, 0, imgW, imgH);
-            ctx.drawImage(sourceCanvas, 0, 0, imgW, imgH);
-
-            originalImage = sourceCanvas;
-            cropRect = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
-            updateCropBox();
-            statusText.innerHTML = '✂️ Atur bingkai crop, lalu tekan "Terapkan"';
-        }
-
-        // ================================================================
-        // 7. UPDATE CROP BOX
-        // ================================================================
-        function updateCropBox() {
-            let w = editorCanvas.width;
-            let h = editorCanvas.height;
-            let x = cropRect.x * w;
-            let y = cropRect.y * h;
-            let cw = cropRect.w * w;
-            let ch = cropRect.h * h;
-
-            if (x < 0) { x = 0;
-                cropRect.x = 0; }
-            if (y < 0) { y = 0;
-                cropRect.y = 0; }
-            if (x + cw > w) { cw = w - x;
-                cropRect.w = cw / w; }
-            if (y + ch > h) { ch = h - y;
-                cropRect.h = ch / h; }
-
-            cropBox.style.left = (cropRect.x * 100) + '%';
-            cropBox.style.top = (cropRect.y * 100) + '%';
-            cropBox.style.width = (cropRect.w * 100) + '%';
-            cropBox.style.height = (cropRect.h * 100) + '%';
-        }
-
-        // ================================================================
-        // 8. DRAG CROP HANDLE
-        // ================================================================
-        function setupCropDrag() {
-            const handles = document.querySelectorAll('.crop-handle');
-
-            function onStart(e) {
-                e.preventDefault();
-                let touch = e.touches ? e.touches[0] : e;
-                activeHandle = e.currentTarget;
-                let dir = activeHandle.dataset.dir;
-                startX = touch.clientX;
-                startY = touch.clientY;
-                startRect = { ...cropRect };
-                isDragging = true;
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onEnd);
-                document.addEventListener('touchmove', onMove, { passive: false });
-                document.addEventListener('touchend', onEnd);
+                console.error(error);
             }
 
-            function onMove(e) {
-                if (!isDragging || !activeHandle) return;
-                e.preventDefault();
-                let touch = e.touches ? e.touches[0] : e;
-                let dx = (touch.clientX - startX) / editorCanvas.width;
-                let dy = (touch.clientY - startY) / editorCanvas.height;
-                let dir = activeHandle.dataset.dir;
-                let newRect = { ...startRect };
-
-                if (dir.includes('l')) { newRect.x = startRect.x + dx;
-                    newRect.w = startRect.w - dx; }
-                if (dir.includes('r')) { newRect.w = startRect.w + dx; }
-                if (dir.includes('t')) { newRect.y = startRect.y + dy;
-                    newRect.h = startRect.h - dy; }
-                if (dir.includes('b')) { newRect.h = startRect.h + dy; }
-
-                if (newRect.w < 0.05) newRect.w = 0.05;
-                if (newRect.h < 0.05) newRect.h = 0.05;
-                if (newRect.x < 0) { newRect.w += newRect.x;
-                    newRect.x = 0; }
-                if (newRect.y < 0) { newRect.h += newRect.y;
-                    newRect.y = 0; }
-                if (newRect.x + newRect.w > 1) { newRect.w = 1 - newRect.x; }
-                if (newRect.y + newRect.h > 1) { newRect.h = 1 - newRect.y; }
-
-                cropRect = newRect;
-                updateCropBox();
-            }
-
-            function onEnd() {
-                isDragging = false;
-                activeHandle = null;
-                document.removeEventListener('mousemove', onMove);
-                document.removeEventListener('mouseup', onEnd);
-                document.removeEventListener('touchmove', onMove);
-                document.removeEventListener('touchend', onEnd);
-            }
-
-            handles.forEach(h => {
-                h.addEventListener('mousedown', onStart);
-                h.addEventListener('touchstart', onStart, { passive: false });
-            });
-        }
-        setupCropDrag();
-
-        // ================================================================
-        // 9. TERAPKAN CROP
-        // ================================================================
-        function applyCrop() {
-            if (!originalImage) {
-                alert('Tidak ada gambar untuk di-crop.');
-                return;
-            }
-            let w = originalImage.width;
-            let h = originalImage.height;
-            let x = Math.round(cropRect.x * w);
-            let y = Math.round(cropRect.y * h);
-            let cw = Math.round(cropRect.w * w);
-            let ch = Math.round(cropRect.h * h);
-
-            let cropCanvas = document.createElement('canvas');
-            cropCanvas.width = cw;
-            cropCanvas.height = ch;
-            let cropCtx = cropCanvas.getContext('2d');
-            cropCtx.drawImage(originalImage, x, y, cw, ch, 0, 0, cw, ch);
-
-            originalImage = cropCanvas;
-            editorCanvas.width = cw;
-            editorCanvas.height = ch;
-            ctx.drawImage(cropCanvas, 0, 0);
-            cropRect = { x: 0, y: 0, w: 1, h: 1 };
-            updateCropBox();
-            statusText.innerHTML = '✅ Crop diterapkan! Simpan sebagai PDF/JPG.';
-            croppedImage = cropCanvas;
-        }
-
-        // ================================================================
-        // 10. TOMBOL
-        // ================================================================
-        document.getElementById('btnCapture').addEventListener('click', captureImage);
-
-        document.getElementById('btnUpload').addEventListener('click', function() {
-            document.getElementById('fileInput').click();
         });
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = new Image();
-                img.onload = function() {
-                    let tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = img.width;
-                    tempCanvas.height = img.height;
-                    let tempCtx = tempCanvas.getContext('2d');
-                    tempCtx.drawImage(img, 0, 0);
-                    let result = autoDetectAndCrop(tempCanvas);
-                    if (result) {
-                        originalImage = result;
-                    } else {
-                        originalImage = tempCanvas;
-                        statusText.innerHTML = '⚠️ Deteksi gagal, gunakan crop manual.';
-                    }
-                    showEditor(originalImage);
-                };
-                img.src = ev.target.result;
+
+        // ==============================
+        // FOTO SELFIE
+        // ==============================
+
+        takePhoto.addEventListener("click", () => {
+
+            if (!stream) {
+
+                alert("Aktifkan kamera terlebih dahulu.");
+
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            currentPhoto =
+                canvas.toDataURL("image/jpeg", 0.85);
+
+            photo.src = currentPhoto;
+
+            photo.style.display = "block";
+
+            cameraStatus.textContent = "Selfie berhasil";
+
+        });
+
+        // ==============================
+        // GPS
+        // ==============================
+
+        getLocation.addEventListener("click", () => {
+
+            if (!navigator.geolocation) {
+
+                alert("Browser tidak mendukung GPS.");
+
+                return;
+            }
+
+            gpsStatus.textContent = "Mengambil lokasi...";
+
+            locationText.textContent =
+                "Sedang menentukan lokasi...";
+
+            navigator.geolocation.getCurrentPosition(
+
+                (position) => {
+
+                    const latitude =
+                        position.coords.latitude;
+
+                    const longitude =
+                        position.coords.longitude;
+
+                    currentLocation = {
+                        latitude,
+                        longitude
+                    };
+
+                    gpsStatus.textContent =
+                        "Lokasi ditemukan";
+
+                    locationText.textContent =
+                        "Lokasi berhasil diperoleh";
+
+                    coordinates.innerHTML =
+                        `Latitude: ${latitude}<br>
+                         Longitude: ${longitude}`;
+
+                },
+
+                (error) => {
+
+                    gpsStatus.textContent =
+                        "Gagal mendapatkan lokasi";
+
+                    locationText.textContent =
+                        "Lokasi tidak tersedia";
+
+                    alert(
+                        "GPS tidak dapat diperoleh.\n\n" +
+                        "Pastikan GPS aktif dan izin lokasi diberikan."
+                    );
+
+                    console.error(error);
+
+                },
+
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+
+            );
+
+        });
+
+        // ==============================
+        // ABSENSI
+        // ==============================
+
+        function submitAttendance(type) {
+
+            if (!currentPhoto) {
+
+                alert("Silakan ambil selfie terlebih dahulu.");
+
+                return;
+            }
+
+            if (!currentLocation) {
+
+                alert("Silakan ambil lokasi GPS terlebih dahulu.");
+
+                return;
+            }
+
+            const now = new Date();
+
+            const data = {
+
+                nama: "Nama Pegawai",
+
+                nip: "1987654321",
+
+                tipe: type,
+
+                tanggal:
+                    now.toLocaleDateString("id-ID"),
+
+                waktu:
+                    now.toLocaleTimeString("id-ID"),
+
+                latitude:
+                    currentLocation.latitude,
+
+                longitude:
+                    currentLocation.longitude,
+
+                foto:
+                    currentPhoto
+
             };
-            reader.readAsDataURL(file);
-            e.target.value = '';
-        });
 
-        document.getElementById('btnCrop').addEventListener('click', applyCrop);
+            let history =
+                JSON.parse(
+                    localStorage.getItem("absensi")
+                ) || [];
 
-        document.getElementById('btnJPG').addEventListener('click', function() {
-            if (!originalImage) { alert('Silakan ambil atau upload gambar dulu!'); return; }
-            let src = croppedImage || originalImage;
-            const link = document.createElement('a');
-            link.download = 'scanned_document.jpg';
-            link.href = src.toDataURL('image/jpeg', 0.95);
-            link.click();
-        });
+            history.unshift(data);
 
-        document.getElementById('btnPDF').addEventListener('click', function() {
-            if (!originalImage) { alert('Silakan ambil atau upload gambar dulu!'); return; }
-            let src = croppedImage || originalImage;
-            try {
-                const { jsPDF } = window.jspdf;
-                const imgData = src.toDataURL('image/jpeg', 0.90);
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfW = 210,
-                    pdfH = 297;
-                const imgW = src.width,
-                    imgH = src.height;
-                const ratio = Math.min(pdfW / imgW, pdfH / imgH);
-                const fw = imgW * ratio,
-                    fh = imgH * ratio;
-                const x = (pdfW - fw) / 2,
-                    y = (pdfH - fh) / 2;
-                pdf.addImage(imgData, 'JPEG', x, y, fw, fh);
-                pdf.save('scanned_document.pdf');
-                statusText.innerHTML = '✅ PDF berhasil diunduh!';
-            } catch (err) {
-                alert('Gagal buat PDF: ' + err.message);
+            localStorage.setItem(
+                "absensi",
+                JSON.stringify(history)
+            );
+
+            showResult(data);
+
+            loadHistory();
+
+        }
+
+        // ==============================
+        // HASIL ABSENSI
+        // ==============================
+
+        function showResult(data) {
+
+            const result =
+                document.getElementById("result");
+
+            const resultText =
+                document.getElementById("resultText");
+
+            result.classList.remove("hidden");
+
+            resultText.innerHTML = `
+
+                <strong>${data.tipe}</strong><br>
+
+                ${data.tanggal}
+                ${data.waktu}<br>
+
+                📍 ${data.latitude.toFixed(6)},
+                ${data.longitude.toFixed(6)}
+
+            `;
+
+        }
+
+        // ==============================
+        // BUTTON ABSEN
+        // ==============================
+
+        document
+            .getElementById("absenMasuk")
+            .addEventListener("click", () => {
+
+                submitAttendance("ABSEN MASUK");
+
+            });
+
+        document
+            .getElementById("absenPulang")
+            .addEventListener("click", () => {
+
+                submitAttendance("ABSEN PULANG");
+
+            });
+
+        // ==============================
+        // RIWAYAT
+        // ==============================
+
+        function loadHistory() {
+
+            const historyContainer =
+                document.getElementById("history");
+
+            const history =
+                JSON.parse(
+                    localStorage.getItem("absensi")
+                ) || [];
+
+            if (history.length === 0) {
+
+                historyContainer.innerHTML = `
+                    <div class="empty">
+                        Belum ada riwayat absensi
+                    </div>
+                `;
+
+                return;
             }
-        });
 
-        // Update crop box awal
-        setTimeout(() => updateCropBox(), 500);
-        console.log('🚀 Fast Scanner + Editor siap!');
+            historyContainer.innerHTML =
+                history.map(item => `
+
+                    <div class="history-item">
+
+                        <strong>
+                            ${item.tipe}
+                        </strong>
+
+                        <small>
+                            ${item.tanggal}
+                            •
+                            ${item.waktu}
+                        </small>
+
+                        <br>
+
+                        <small>
+                            📍 ${item.latitude.toFixed(6)},
+                            ${item.longitude.toFixed(6)}
+                        </small>
+
+                    </div>
+
+                `).join("");
+
+        }
+
+        // ==============================
+        // HAPUS RIWAYAT
+        // ==============================
+
+        document
+            .getElementById("clearHistory")
+            .addEventListener("click", () => {
+
+                if (
+                    confirm(
+                        "Hapus seluruh riwayat absensi?"
+                    )
+                ) {
+
+                    localStorage.removeItem("absensi");
+
+                    loadHistory();
+
+                }
+
+            });
+
+        loadHistory();
     </script>
+
 </body>
 </html>
